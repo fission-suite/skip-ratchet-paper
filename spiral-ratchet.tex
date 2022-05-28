@@ -23,7 +23,7 @@
 \title{Skip Ratchet \\[1ex] \large A Hierarchical Hash System}
 \author{Brooklyn Zelenka \\ \href{https://fission.codes}{Fission Codes} \\ \href{mailto:brooklyn@fission.codes}{brooklyn@fission.codes} }
 \addbibresource{spiral-ratchet.bib}
-\date{\today\\v1.0.0}
+\date{\today\\v1.0.1}
 
 \begin{document}
     \maketitle
@@ -159,7 +159,7 @@
 
 	Each digit is given a label and maximum value for all but the largest, which acts as a linear ``spine''. This largest element is analogous to an unbounded unary digit. The remaining elements are arranged positionally, and are bounded by their numerical base. Since the unary digit is a hard limit on the number of digits, it conceals information about the range of numbers that the current internal state represents. Any range within a fixed larger value is called an ``epoch'' (e.g. ``the 300s epoch'' or ``the $h^{42}(x)$ epoch'').\footnote{The term ``epoch'' is used here in the generic or Ethereum\cite{ethereum-yellowpaper} sense, and is a slightly different from some other ratchet constructions such as the Double Ratchet\cite{double-ratchet-modularization}.}
 	
-	By geometric analogy, the possible steps in this construction are similar to moving along a spiral: one component returns to its initial value, but the other dimension is always moving forward. Following a spiral in single steps is smooth, but leaps are possible by jumping to adjacent rings (Figure \ref{fig:spiral-metaphor}). Unlike the repeating numerals found in most counting systems, the skip ratchet never repeats a value despite the counter being kept to a limited number of elements. We call this the ``spiral property.''.
+	By geometric analogy, the possible steps in this construction are similar to moving along a spiral: one component returns to its initial value, but the other dimension is always moving forward. Following a spiral in single steps is smooth, but leaps are possible by jumping to adjacent rings (Figure \ref{fig:spiral-metaphor}). Unlike the repeating numerals found in most counting systems, the skip ratchet never repeats a value despite the counter being kept to a limited number of elements. We call this the ``spiral property.''
 	
 	\begin{figure}[h]
 		\centering
@@ -186,7 +186,7 @@
 		
 		$S : \langle \langle Count_{0}, Value_{0} \rangle, \langle Count_{1}, Value_{1} \rangle \ldots \langle Count_{n-1}, Value_{n-1} \rangle, U\rangle_{b}$
 		
-		\caption{Skip Ratchet Counter}
+		\caption{Skip Ratchet Counter State}
 		\label{fig:counter}
 	\end{figure*}
 
@@ -296,8 +296,6 @@
 			\EndFunction
 		\end{algorithmic}
 	\end{algorithm*}
-
-%	\FloatBarrier
 	
 	\subsubsection{Increment}
 	
@@ -347,7 +345,7 @@
 
 	Jumps by an arbitrary interval require a little more calculation (Algorithm \ref{alg:jump}). The interval $\delta$ is componentized, and each digit incremented in ascending order. Every positional digit has an upper bound, so any remainder saved for the final step, where any zeroed digits are incremented to match the final count. Arbitrary jumps run in $\mathcal{O}(\log_{b} \delta)$ when $\delta < b^{b(n+1)}$ (the normal operating interval that the skip ratchet is tuned for). As the unary hash chain dominates as $\delta$ becomes very large, the complexity becomes $\mathcal{O}(\frac{\delta}{b^{n}})$.
 
-	\begin{algorithm*}
+	\begin{algorithm*}[b]
 		\caption{Skip Ratchet Arbitrary Jump}
 		\label{alg:jump}
 		
@@ -410,7 +408,7 @@
 	
 	The skip ratchet's internal state permits bounding derivation to a fixed range in a decentralized system. This is accomplished by only sharing a few of the lower positions, and only sharing the rest of te state as a flattened hash.
 	
-	Revealing one OKM provides access to the cleartexts encrypted with that key (e.g. a single version of one file). Providing the \textsf{XOR} of the unary digit and a nonzero number of positional elements gives (post-compromise) access to the remaining number of updates in that epoch. Access to the entire internal state grants access from a point onwards, including potentially the initial state.
+	Revealing one OKM provides access to the cleartexts encrypted with that key (e.g. a single version of one file). Providing the \textsf{XOR} of the unary digit and a nonzero number of positional elements gives (post-compromise) access to the remaining number of updates in that epoch. Access to the entire internal state grants access from a point onwards, including potentially the initial state. As such, the number of elements in the internals state must be at least $n+2$ to provide if intended for use in this setting, where $n$ is the number of levels that are desired to be exposed.
 	
 	For example, in a $\langle 4, 256, \textsf{SHA}3, \oplus \rangle$ skip ratchet, sharing $\langle S, M, L \oplus U \rangle$ allows the recipient to move freely in the ``medium'' jump range, up to $i + 256^{3} - 1$. Keys can still be fully generated thanks to \textsf{XOR}'s associativity, but the recipient will need to ask for the next $L' \oplus U$ to continue.
 	
